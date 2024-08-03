@@ -1,0 +1,138 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quotes-app-deployment
+spec:
+  replicas: 1 
+  selector:
+    matchLabels:
+      app: newapp
+  template:
+    metadata:
+      labels:
+        app: newapp
+    spec:
+      containers:
+      - name: quotes-app-container
+        image: quotes-app:1.0.0
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+          requests:
+            cpu: "250m"
+            memory: "256Mi"
+        ports:
+          - containerPort: 80
+            protocol: TCP
+        env:
+          - name: POSTGRES_USER
+            valueFrom:
+              secretKeyRef:
+                name: postgres-secret-config
+                key: user
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: postgres-secret-config
+                key: password        
+
+---
+#application load balancer
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: application
+labels:
+    app: application
+spec:
+type: ClusterIP
+loadBalancerIP: ""
+ports:
+    - port: 80
+    name: http
+    protocol: TCP
+selector:
+    app: application
+
+---
+#db-secret
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-secret-config
+  type: opaque
+data:
+  user: ""
+  password: ""
+
+---
+#persistentvolume
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: postgres-volume
+  labels:
+    type: local
+    app: postgres
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: /mnt/data
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-volume-claim
+  labels:
+    app: postgres
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+      - name: postgres
+        image: 'postgres:14'
+        imagePullPolicy: IfNotPresent
+        ports:
+          - containerPort: 5432
+        env:
+          - name: POSTGRES_USER
+            valueFrom:
+              secretKeyRef:
+                name: postgres-secret-config
+                key: user
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: postgres-secret-config
+                key: password
