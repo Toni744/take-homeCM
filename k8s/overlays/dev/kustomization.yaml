@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1betal
+kind: Kustomization
+
+patches:
+- path: deployment-patch.yaml
+
+resources:
+- ../../base
+
+images:
+- name: quotes-app
+  newtag: 1.0.0
