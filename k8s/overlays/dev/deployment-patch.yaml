@@ -1,0 +1,17 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quotes-app-deployment
+spec:
+  replicas: 2 # increase the number of replicas.
+  template:
+    spec:
+      containers:
+      - name: quotes-app-container
+        resources: # adjust resource requests and limits for testing.
+          limits:
+            cpu: "1"
+            memory: "1Gi"
+          requests:
+            cpu: "500m"
+            memory: "512Mi"
