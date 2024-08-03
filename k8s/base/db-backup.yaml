@@ -1,0 +1,36 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: db-backup
+spec:
+  schedule: "0 0 1 * *"  # To happen at 12am on the 1st of the month
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: db-backup
+            image: ""
+            env:
+            - name: DB_HOST 
+              value: [DB IP ADDRESS]
+            - name: DB_NAME
+              value: "customers"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret-config 
+                  key: password
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom: 
+                secretKeyRef:
+                  name: aws-secret-config
+                  key: access-key-id  
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: aws-secret-config
+                  key:
+            - name: S3_BUCKET
+              value: "k8s-db-backup"
+          restartPolicy: OnFailure
