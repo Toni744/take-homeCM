@@ -1,0 +1,21 @@
+name: run test
+
+on: push
+
+jobs: 
+  run-tests:
+    name: run python unit test
+    runs on: ubuntu-latest
+    container:
+      image: quotes-app:1.0.0
+      volumes:
+        - ${{ github.workspace }}:app
+    steps:
+      -  name: Checkout code
+         uses: actions/checkout@v2
+    
+      - name: Run unit tests
+        uses: "${{ address to test file }}"
+        env:
+          DEFAULT_BRANCH: main
+          GITHUB_TOKEN: $ {{ secrets.GITHUB.TOKEN }}
